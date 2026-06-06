@@ -20,11 +20,21 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Build Regular Debug APK (sin Firebase)
-        run: ./gradlew assembleRegularDebug
+      - name: Build Release APK
+        run: ./gradlew assembleRegularRelease
+
+      - name: Sign APK
+        uses: r0adkll/sign-android-release@v1
+        id: sign_app
+        with:
+          releaseDirectory: app/build/outputs/apk/regular/release
+          signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
+          alias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ChatgoTrack-debug
-          path: app/build/outputs/apk/regular/debug/app-regular-debug.apk
+          name: ChatgoTrack
+          path: ${{ steps.sign_app.outputs.signedReleaseFile }}
