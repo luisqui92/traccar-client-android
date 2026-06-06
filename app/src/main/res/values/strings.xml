@@ -51,5 +51,5 @@
   <string name="request_background_option">Allow all the time</string>
   <string name="widget_description">Shows the service status</string>
   <string name="widget_label">Status widget</string>
-  <string name="settings_url_default_value">https://traccar-production-056d.up.railway.app</string>
+  <string name="settings_url_default_value">http://34.61.45.154:5055</string>
 </resources>
