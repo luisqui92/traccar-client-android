@@ -23,18 +23,31 @@ jobs:
       - name: Build Release APK
         run: ./gradlew assembleRegularRelease
 
-      - name: Sign APK
-        uses: r0adkll/sign-android-release@v1
-        id: sign_app
-        with:
-          releaseDirectory: app/build/outputs/apk/regular/release
-          signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
-          alias: ${{ secrets.KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
+      - name: Find build-tools version
+        id: buildtools
+        run: |
+          BT=$(ls $ANDROID_SDK_ROOT/build-tools/ | sort -V | tail -1)
+          echo "version=$BT" >> $GITHUB_OUTPUT
+          echo "Found build-tools: $BT"
+
+      - name: Sign APK manually
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > /tmp/chatgotrack.jks
+          APK=$(find app/build/outputs/apk/regular/release -name "*.apk" | head -1)
+          ALIGNED=/tmp/chatgotrack-aligned.apk
+          SIGNED=/tmp/ChatgoTrack.apk
+          BT=${{ steps.buildtools.outputs.version }}
+          $ANDROID_SDK_ROOT/build-tools/$BT/zipalign -v 4 $APK $ALIGNED
+          $ANDROID_SDK_ROOT/build-tools/$BT/apksigner sign \
+            --ks /tmp/chatgotrack.jks \
+            --ks-key-alias ${{ secrets.KEY_ALIAS }} \
+            --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
+            --key-pass pass:${{ secrets.KEY_PASSWORD }} \
+            --out $SIGNED $ALIGNED
+          echo "APK firmada: $SIGNED"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: ChatgoTrack
-          path: ${{ steps.sign_app.outputs.signedReleaseFile }}
+          path: /tmp/ChatgoTrack.apk
