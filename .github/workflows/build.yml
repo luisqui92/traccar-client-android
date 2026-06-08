@@ -2,7 +2,7 @@ name: Build ChatgoTrack APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   workflow_dispatch:
 
 jobs:
